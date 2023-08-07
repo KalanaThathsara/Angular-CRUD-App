@@ -7,6 +7,8 @@ import {MatSort, MatSortModule} from '@angular/material/sort';
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
+import { CoreService } from './core/core.service';
+
 
 @Component({
   selector: 'app-root',
@@ -34,7 +36,11 @@ export class AppComponent implements OnInit{
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private dialog:MatDialog, private _empService: EmployeeService) {}
+  constructor(
+    private dialog:MatDialog, 
+    private _empService: EmployeeService,
+    private _coreService: CoreService
+    ) {}
 
   ngOnInit(): void {
     this.getEmployee();
@@ -68,7 +74,7 @@ export class AppComponent implements OnInit{
     this._empService.deleteEmployee(id).subscribe({
       next:(res)=>{
         
-        alert('Employee Deleted')
+        this._coreService.openSnackBar('Employee Deleted', 'done')
         this.getEmployee();
       },
       error:(err) => {
@@ -78,11 +84,20 @@ export class AppComponent implements OnInit{
   }
 
   editEmployee(data:any){
-    this.dialog.open(EmpAddEditComponent, {
+    const dialogRef = this.dialog.open(EmpAddEditComponent, {
       data:data,
     });
+
+    dialogRef.afterClosed().subscribe({
+      next: (val) => {
+        if (val){
+          this.getEmployee();
+        }
+      },
+    })
     
   }
+
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
